@@ -72,6 +72,15 @@ PCF8574_RESULT PCF8574_DeInit(PCF8574_HandleTypeDef* handle);
 PCF8574_RESULT PCF8574_Write(PCF8574_HandleTypeDef* handle, uint8_t val);
 
 /**
+ * Writes given values to the port of PCF8574
+ * @param	handle - a pointer to the PCF8574 handle
+ * @param	pData - the values to be written to the port
+ * @param 	Size - the number of values to be written
+ * @return	whether the function was successful or not
+ */
+PCF8574_RESULT PCF8574_Write_Buffer(PCF8574_HandleTypeDef* handle, uint8_t *pData, uint16_t Size);
+
+/**
  * Reads the current state of the port of PCF8574
  * @param	handle - a pointer to the PCF8574 handle
  * @param	val - a pointer to the variable that will be assigned a value from the chip

@@ -52,6 +52,19 @@ PCF8574_RESULT PCF8574_Write(PCF8574_HandleTypeDef* handle, uint8_t val) {
 	return PCF8574_OK;
 }
 
+//change to IT?
+//HAL_I2C_Master_Transmit_IT()
+//HAL_StatusTypeDef HAL_I2C_Master_Transmit_IT(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size)
+//HAL_StatusTypeDef HAL_I2C_Master_Transmit   (I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout)
+PCF8574_RESULT PCF8574_Write_Buffer(PCF8574_HandleTypeDef* handle, uint8_t *pData, uint16_t Size) {
+	if(HAL_I2C_Master_Transmit(&handle->i2c,(handle->PCF_I2C_ADDRESS << 1) | PCF8574_I2C_ADDRESS_MASK,
+				pData,Size,handle->PCF_I2C_TIMEOUT)!= HAL_OK) {
+		handle->errorCallback(PCF8574_ERROR);
+		return PCF8574_ERROR;
+	}
+	return PCF8574_OK;
+}
+
 PCF8574_RESULT PCF8574_Read(PCF8574_HandleTypeDef* handle, uint8_t* val) {
 	if (HAL_I2C_Master_Receive(&handle->i2c,
 			(handle->PCF_I2C_ADDRESS << 1) | PCF8574_I2C_ADDRESS_MASK, val, 1,

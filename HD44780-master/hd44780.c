@@ -7,6 +7,11 @@
 
 #include "hd44780.h"
 
+#define init_byte  			0x30
+#define init_4bit 		0x20
+#define enable_low 		0x0
+#define enable_high 	0x4
+
 uint32_t PCF8574_Type0Pins[8] = { 4, 5, 6, 7, 0, 1, 2, 3 };
 
 void LCD_WaitForBusyFlag(LCD_PCF8574_HandleTypeDef* handle) {
@@ -41,7 +46,6 @@ LCD_RESULT LCD_StateWriteBit(LCD_PCF8574_HandleTypeDef* handle, uint8_t value,
 	return LCD_I2C_WriteOut(handle);
 }
 
-
 LCD_RESULT LCD_StateSetBit(LCD_PCF8574_HandleTypeDef* handle, uint8_t value,
 		LCD_PIN pin) {
 
@@ -52,7 +56,6 @@ LCD_RESULT LCD_StateSetBit(LCD_PCF8574_HandleTypeDef* handle, uint8_t value,
 	}
 	return LCD_OK;
 }
-
 
 LCD_RESULT LCD_Init(LCD_PCF8574_HandleTypeDef* handle) {
 
@@ -71,62 +74,21 @@ LCD_RESULT LCD_Init(LCD_PCF8574_HandleTypeDef* handle) {
 	}
 
 	HAL_Delay(50);
-	//LCD_StateWriteBit(handle, 0, LCD_PIN_RS); //mw comment out just 0 bit
-	//LCD_StateWriteBit(handle, 0, LCD_PIN_RW); //mw comment out just 0 bit
-	//LCD_StateWriteBit(handle, 0, LCD_PIN_E);
 
 	//init value
-	uint8_t i2cTxBuffer[6];// = {init_byte, init_clock_high_byte, init_clock_low_byte};
-	  i2cTxBuffer[0] = 0x30; 	//init_byte;
-	  i2cTxBuffer[1] = 0x4; 	//init_clock_high_byte;
-	  i2cTxBuffer[2] = 0x30; 	//init_clock_low_byte;
+
+	uint8_t i2cTxBuffer[6] = {init_byte,init_byte|enable_high, init_byte|enable_low};
+	//  i2cTxBuffer[0] = 0x30; 	//init_byte;
+	//  i2cTxBuffer[1] = 0x4; 	//init_clock_high_byte;
+	//  i2cTxBuffer[2] = 0x30; 	//init_clock_low_byte;
+
 
 	//needs to be blocking because more to come.
-	HAL_I2C_Master_Transmit(&handle->pcf8574.i2c,
-			(0x3F|0x40),
-			i2cTxBuffer,
-			3,
-			1000);
-	HAL_Delay(5);
+	for (uint8_t var = 0; var < 3; ++var) {
+		PCF8574_Write_Buffer(&handle->pcf8574, i2cTxBuffer, 3);
+		HAL_Delay(5);
+	}
 
-	HAL_I2C_Master_Transmit(&handle->pcf8574.i2c,
-			(0x3F|0x40),
-			i2cTxBuffer,
-			3,
-			1000);
-	HAL_Delay(5);
-
-	HAL_I2C_Master_Transmit(&handle->pcf8574.i2c,
-			(0x3F|0x40),
-			i2cTxBuffer,
-			3,
-			1000);
-	HAL_Delay(5);
-
-
-/*
-	LCD_StateWriteBit(handle, 1, LCD_PIN_E);
-
-	LCD_WriteToDataBus(handle, 3);
-	LCD_StateWriteBit(handle, 1, LCD_PIN_E);
-	//HAL_Delay(1);
-	LCD_StateWriteBit(handle, 0, LCD_PIN_E);
-	HAL_Delay(5);
-
-	LCD_WriteToDataBus(handle, 3);
-	LCD_StateWriteBit(handle, 1, LCD_PIN_E);
-	//HAL_Delay(1);
-	LCD_StateWriteBit(handle, 0, LCD_PIN_E);
-	HAL_Delay(5);
-
-	//init value
-	LCD_WriteToDataBus(handle, 3);
-	LCD_StateWriteBit(handle, 1, LCD_PIN_E);
-	//HAL_Delay(1);
-	LCD_StateWriteBit(handle, 0, LCD_PIN_E);
-	HAL_Delay(1);
-
-*/
 	//switch to 4-bit mode
 	LCD_WriteToDataBus(handle, 2);
 	LCD_StateWriteBit(handle, 1, LCD_PIN_E);
